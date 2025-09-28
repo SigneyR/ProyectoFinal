@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from styles import TERMINAL_STYLE
 
 def abrir_editor(archivo=None):
     def abrir_archivo():
@@ -36,10 +37,12 @@ def abrir_editor(archivo=None):
 
     ventana = tk.Toplevel()
     ventana.title("Editor de Archivos")
+    ventana.geometry("800x500")
+
 
     # Área de texto
-    texto = tk.Text(ventana, wrap="word")
-    texto.pack(expand=True, fill="both")
+    texto = tk.Text(ventana, wrap="word",**TERMINAL_STYLE,font=("Consolas", 12))
+    texto.pack(expand=True, fill="both", padx=10, pady=10)
 
     # Si se abre desde el administrador con un archivo
     if archivo:
@@ -48,13 +51,13 @@ def abrir_editor(archivo=None):
         ventana.title(f"Editor - {archivo}")
 
     # Menú superior
-    menu = tk.Menu(ventana)
+    menu = tk.Menu(ventana, bg="black", fg="white", tearoff=0)
     ventana.config(menu=menu)
 
-    archivo_menu = tk.Menu(menu, tearoff=0)
+    archivo_menu = tk.Menu(menu, tearoff=0,bg="black", fg="white")
     menu.add_cascade(label="Archivo", menu=archivo_menu)
-    archivo_menu.add_command(label="Abrir", command=abrir_archivo)
-    archivo_menu.add_command(label="Guardar", command=guardar_archivo)
-    archivo_menu.add_command(label="Guardar como", command=guardar_como)
+    archivo_menu.add_command(label="📂 Abrir", command=abrir_archivo)
+    archivo_menu.add_command(label="💾 Guardar", command=guardar_archivo)
+    archivo_menu.add_command(label="📝 Guardar como", command=guardar_como)
     archivo_menu.add_separator()
-    archivo_menu.add_command(label="Salir", command=ventana.destroy)
+    archivo_menu.add_command(label="❌ Salir", command=ventana.destroy)
