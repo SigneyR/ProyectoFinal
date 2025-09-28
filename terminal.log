@@ -1,0 +1,22 @@
+COMANDO: 
+
+---
+COMANDO: mkdir nuevo
+
+---
+COMANDO: cd nuevo
+
+---
+COMANDO: tree
+Folder PATH listing for volume OS
+Volume serial number is 40B5-687C
+C:.
++---nuevo
++---ProyectoFinal
+    +---data
+    +---__pycache__
+
+---
+COMANDO: cls
+
+---
