@@ -1,34 +1,93 @@
 import tkinter as tk
-from tkinter import filedialog, scrolledtext
-from styles import BUTTON_STYLE, TERMINAL_STYLE
+from tkinter import filedialog, messagebox, scrolledtext
+import os
+
+# Librerías externas necesarias para leer Word y PDF
+from docx import Document
+import PyPDF2
 
 def abrir_explorador():
-    # Ventana de selección de archivos
-    root = tk.Tk()
-    root.withdraw()  # Oculta ventana principal
-    
+    # Abrir un cuadro de diálogo para seleccionar un archivo
+    archivo = filedialog.askopenfilename(
+        title="Selecciona un archivo",
+        filetypes=[
+            ("Archivos de texto", "*.txt;*.py;*.md;*.csv"),
+            ("Archivos Word", "*.docx"),
+            ("Archivos PDF", "*.pdf"),
+            ("Todos los archivos", "*.*")
+        ]
+    )
 
-    archivo = filedialog.askopenfilename(title="Selecciona un archivo")
-    if archivo:
-        with open(archivo, "r", encoding="utf-8") as f:
-            contenido = f.read()
+    if archivo:  # Si el usuario seleccionó un archivo
+        extension = os.path.splitext(archivo)[1].lower()  # Obtener extensión del archivo
+        contenido = ""  # Variable donde se guarda el texto a mostrar
 
-        # Ventana para mostrar el archivo
-        win = tk.Toplevel()
-        win.title(f"Editor - {archivo}")
-        win.geometry("800x500")
+        try:
+            # Lectura de archivos de texto (son editables)
+            if extension in [".txt", ".py", ".md", ".csv"]:
+                with open(archivo, "r", encoding="utf-8") as f:
+                    contenido = f.read()
+            
+            # Lectura de archivos Word (solo lectura)
+            elif extension == ".docx":
+                doc = Document(archivo)
+                contenido = "\n".join([p.text for p in doc.paragraphs])
 
+            # Lectura de archivos PDF (solo lectura)
+            elif extension == ".pdf":
+                with open(archivo, "rb") as f:
+                    reader = PyPDF2.PdfReader(f)
+                    for page in reader.pages:
+                        contenido += page.extract_text() + "\n"
 
-        texto = scrolledtext.ScrolledText(win, wrap=tk.WORD, width=80, height=20, **TERMINAL_STYLE,font=("Consolas", 12))
-        texto.insert(tk.END, contenido)
-        texto.pack(expand=True, fill="both", padx=10, pady=10)
+            # Si el formato no está soportado
+            else:
+                contenido = "[Formato no soportado para vista previa]"
 
-        # Guardar cambios
-        def guardar():
-            with open(archivo, "w", encoding="utf-8") as f:
-                f.write(texto.get("1.0", tk.END))
-        
-        btn_guardar = tk.Button(win, text="Guardar", command=guardar,**BUTTON_STYLE,font=("Consolas", 12, "bold"), padx=15,pady=5)
-        btn_guardar.pack(pady=10)
+        except Exception as e:
+            # Si ocurre un error al abrir el archivo, se muestra el error en pantalla
+            contenido = f"[Error al abrir archivo: {e}]"
 
-        win.mainloop()
+        # Crear una nueva ventana para mostrar el contenido
+        editor = tk.Toplevel()
+        editor.title(f"Explorador - {archivo}")
+        editor.geometry("800x600")
+        editor.configure(bg="#8A56B7")  # Fondo morado oscuro
+
+        # Área de texto con scroll para visualizar el contenido
+        text_area = scrolledtext.ScrolledText(
+            editor, wrap="word", font=("Consolas", 11),
+            bg="#EDE7F6", fg="black"  # Fondo lavanda, texto negro
+        )
+        text_area.insert("1.0", contenido)
+
+        # Los archivos de texto son editables, los demás solo lectura
+        text_area.config(
+            state="normal" if extension in [".txt", ".py", ".md", ".csv"] else "disabled"
+        )
+        text_area.pack(expand=True, fill="both", padx=10, pady=10)
+
+        #Botón "Guardar" → solo disponible para archivos de texto
+        if extension in [".txt", ".py", ".md", ".csv"]:
+            def guardar():
+                try:
+                    # Guardar el contenido actual en el archivo
+                    with open(archivo, "w", encoding="utf-8") as f:
+                        f.write(text_area.get("1.0", tk.END))
+                    
+                    # Mostrar confirmación de guardado
+                    messagebox.showinfo("Éxito", "Archivo guardado correctamente")
+                    
+                    #Cerrar automáticamente la ventana después de guardar
+                    editor.destroy()
+
+                except Exception as e:
+                    messagebox.showerror("Error", f"No se pudo guardar: {e}")
+
+            # Botón guardar en la ventana
+            btn_guardar = tk.Button(
+                editor, text="Guardar", command=guardar,
+                bg="#3C2255", fg="white", font=("Arial", 11, "bold")
+            )
+            btn_guardar.pack(pady=5)
+
