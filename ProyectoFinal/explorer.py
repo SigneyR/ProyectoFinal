@@ -90,4 +90,5 @@ def abrir_explorador():
                 bg="#3C2255", fg="white", font=("Arial", 11, "bold")
             )
             btn_guardar.pack(pady=5)
+            
 
